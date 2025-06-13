@@ -1171,9 +1171,20 @@ body:has(.battle-game-overlay) button[style*="position:fixed"][style*="top:10px"
   flex-shrink: 0;
 }
 
+/* IMPORTANT: Remove stat modifications and ensure white stat values */
+.mini-stat .stat-mod {
+  display: none !important;
+}
+
 .mini-stat .stat-value {
-  font-weight: 500;
+  font-weight: 600;
   font-size: 9px;
+  color: #fff !important; /* Force white color */
+}
+
+/* Remove the defense-active span */
+.defense-active {
+  display: none !important;
 }
 
 .specialty-indicator,
@@ -1256,39 +1267,71 @@ body:has(.battle-game-overlay) button[style*="position:fixed"][style*="top:10px"
   50% { filter: drop-shadow(0 0 8px rgba(33, 150, 243, 0.9)); }
 }
 
-/* Defense effect indicator */
-.creature-card.has-defense-effect {
-  box-shadow: 0 0 15px rgba(33, 150, 243, 0.5);
-}
-
-.creature-card.has-defense-effect::after {
-  content: '🛡️';
+/* Single defense effect indicator */
+.defense-effect-indicator {
   position: absolute;
   top: 5px;
   right: 5px;
-  font-size: 20px;
-  filter: drop-shadow(0 0 3px rgba(33, 150, 243, 0.8));
+  background: rgba(33, 150, 243, 0.9);
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  z-index: 10;
   animation: defense-pulse 2s ease-in-out infinite;
+  position: relative;
+}
+
+.defense-effect-indicator .defense-icon {
+  position: relative;
+}
+
+.defense-effect-indicator .defense-duration {
+  position: absolute;
+  bottom: -4px;
+  right: -4px;
+  background: rgba(0, 0, 0, 0.8);
+  color: #fff;
+  font-size: 10px;
+  font-weight: bold;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(255, 255, 255, 0.3);
 }
 
 @keyframes defense-pulse {
   0%, 100% { 
     transform: scale(1);
-    opacity: 0.8;
+    opacity: 0.9;
   }
   50% { 
-    transform: scale(1.2);
+    transform: scale(1.1);
     opacity: 1;
   }
 }
 
-.defense-active {
-  color: #2196F3;
-  font-weight: bold;
-  margin-left: 2px;
+/* Remove duplicate defense indicators */
+.creature-card.has-defense-effect {
+  box-shadow: 0 0 15px rgba(33, 150, 243, 0.5);
 }
 
-/* Stat changes overlay doesn't interfere */
+.creature-card.has-defense-effect::after {
+  display: none !important;
+}
+
+/* Hide extra defense icons in mini-stats */
+.mini-stat.defense-active::after {
+  display: none !important;
+}
+
+/* Improved stat changes overlay */
 .stat-changes-overlay {
   position: absolute;
   top: 50%;
@@ -1296,15 +1339,44 @@ body:has(.battle-game-overlay) button[style*="position:fixed"][style*="top:10px"
   transform: translate(-50%, -50%);
   background: rgba(0, 0, 0, 0.95);
   border: 2px solid #FFD700;
-  border-radius: 10px;
-  padding: 10px;
+  border-radius: 8px;
+  padding: 6px 8px;
   display: flex;
   flex-direction: column;
-  gap: 5px;
+  gap: 3px;
   z-index: 20;
   animation: fade-in 0.2s ease;
-  max-width: 80%;
+  max-width: 90%;
   pointer-events: none;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+}
+
+.stat-change {
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.stat-change.positive {
+  color: #4CAF50;
+}
+
+.stat-change.negative {
+  color: #F44336;
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
 }
 
 .detailed-stats-overlay {
@@ -3279,6 +3351,7 @@ body.modal-open .creature-card {
   .player-hand .mini-stat .stat-value,
   .hand-card-wrapper .mini-stat .stat-value {
     font-size: 8px;
+    color: #fff !important; /* Force white color on mobile too */
   }
   
   /* Health bar */
@@ -3598,6 +3671,34 @@ body:has(.battle-game-overlay) button[style*="z-index: 10000"] {
   
   .momentum-text {
     font-size: 8px;
+  }
+  
+  /* Mobile stat changes overlay adjustments */
+  .stat-changes-overlay {
+    padding: 4px 6px;
+    gap: 2px;
+    max-width: 85%;
+  }
+  
+  .stat-change {
+    font-size: 9px;
+  }
+  
+  /* Mobile defense effect indicator */
+  .defense-effect-indicator {
+    width: 20px;
+    height: 20px;
+    font-size: 12px;
+    top: 3px;
+    right: 3px;
+  }
+  
+  .defense-effect-indicator .defense-duration {
+    width: 12px;
+    height: 12px;
+    font-size: 8px;
+    bottom: -2px;
+    right: -2px;
   }
 }
 
