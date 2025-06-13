@@ -1,4 +1,4 @@
-// src/utils/difficultySettings.js - ENHANCED DIFFICULTY SYSTEM
+// src/utils/difficultySettings.js - ENHANCED DIFFICULTY SYSTEM WITH REAL ITEMS
 import { 
   getRandomCreatureTemplate, 
   createEnemyCreature 
@@ -247,9 +247,9 @@ export const generateEnemyCreatures = (difficulty, count = 5, playerCreatures = 
 // ===== ENHANCED ENEMY ITEMS GENERATION =====
 
 /**
- * Generate enemy tools based on difficulty
+ * Generate enemy tools from actual player tool pool
  */
-export const generateEnemyTools = (difficulty, count = 2) => {
+export const generateEnemyTools = (difficulty, count = 2, playerAvailableTools = []) => {
   const settings = getDifficultySettings(difficulty);
   const tools = [];
   
@@ -262,6 +262,50 @@ export const generateEnemyTools = (difficulty, count = 2) => {
   };
   
   const actualCount = toolCounts[difficulty] || count;
+  
+  // If player tools are available, select from them
+  if (playerAvailableTools && playerAvailableTools.length > 0) {
+    // Sort tools by strategic value
+    const sortedTools = [...playerAvailableTools].sort((a, b) => {
+      // Prioritize by rarity
+      const rarityOrder = { 'Legendary': 4, 'Epic': 3, 'Rare': 2, 'Common': 1 };
+      const aRarity = rarityOrder[a.rarity] || 1;
+      const bRarity = rarityOrder[b.rarity] || 1;
+      
+      // Then by effect type preference for AI
+      const effectPreference = {
+        'Surge': 5,    // High damage
+        'Shield': 4,   // Protection
+        'Drain': 3,    // Versatile
+        'Charge': 2,   // Setup
+        'Echo': 1      // Duration
+      };
+      const aEffect = effectPreference[a.tool_effect] || 0;
+      const bEffect = effectPreference[b.tool_effect] || 0;
+      
+      return (bRarity * 10 + bEffect) - (aRarity * 10 + aEffect);
+    });
+    
+    // Select tools based on difficulty
+    for (let i = 0; i < actualCount && i < sortedTools.length; i++) {
+      const selectedTool = sortedTools[i];
+      
+      // Clone the tool for enemy use
+      const enemyTool = {
+        ...selectedTool,
+        id: `enemy_${selectedTool.id}_${Date.now()}_${i}`,
+        isEnemyItem: true
+      };
+      
+      tools.push(enemyTool);
+    }
+    
+    console.log(`Generated ${tools.length} enemy tools from player pool for ${difficulty} difficulty`);
+    return tools;
+  }
+  
+  // Fallback: Generate generic tools if no player tools available
+  console.warn("No player tools available, generating generic enemy tools");
   
   // Tool types and effects
   const toolTypes = ['energy', 'strength', 'magic', 'stamina', 'speed'];
@@ -302,10 +346,50 @@ export const generateEnemyTools = (difficulty, count = 2) => {
     // Generate rarity
     const rarity = selectItemRarity(distribution);
     
-    // Create enhanced tool object
+    // Create generic tool with realistic naming
+    const toolNames = {
+      'Surge': { 
+        'energy': 'Lightning Core', 
+        'strength': 'Berserker Gauntlet', 
+        'magic': 'Arcane Amplifier',
+        'stamina': 'Vitality Surge',
+        'speed': 'Swift Strike'
+      },
+      'Shield': {
+        'energy': 'Energy Barrier',
+        'strength': 'Iron Wall',
+        'magic': 'Mystic Ward',
+        'stamina': 'Guardian Shield',
+        'speed': 'Reflex Guard'
+      },
+      'Echo': {
+        'energy': 'Resonance Crystal',
+        'strength': 'Echo Hammer',
+        'magic': 'Spell Echo',
+        'stamina': 'Endurance Echo',
+        'speed': 'Velocity Echo'
+      },
+      'Drain': {
+        'energy': 'Energy Siphon',
+        'strength': 'Life Drain',
+        'magic': 'Mana Drain',
+        'stamina': 'Vitality Drain',
+        'speed': 'Speed Sap'
+      },
+      'Charge': {
+        'energy': 'Power Capacitor',
+        'strength': 'Charge Blade',
+        'magic': 'Spell Charge',
+        'stamina': 'Fortify Charge',
+        'speed': 'Momentum Builder'
+      }
+    };
+    
+    const toolName = toolNames[toolEffect]?.[toolType] || `${rarity} ${toolEffect} ${toolType.charAt(0).toUpperCase() + toolType.slice(1)} Tool`;
+    
     const tool = {
       id: `enemy_tool_${Date.now()}_${i}`,
-      name: `${rarity} ${toolEffect} ${toolType.charAt(0).toUpperCase() + toolType.slice(1)} Tool`,
+      name: `${rarity} ${toolName}`,
       tool_type: toolType,
       tool_effect: toolEffect,
       rarity: rarity,
@@ -313,7 +397,8 @@ export const generateEnemyTools = (difficulty, count = 2) => {
       description: generateToolDescription(toolType, toolEffect, rarity),
       power_level: calculateEnhancedItemPowerLevel(rarity, difficulty),
       usage_cost: 0,
-      strategic_value: calculateStrategicValue(toolType, toolEffect, difficulty)
+      strategic_value: calculateStrategicValue(toolType, toolEffect, difficulty),
+      isEnemyItem: true
     };
     
     tools.push(tool);
@@ -323,9 +408,9 @@ export const generateEnemyTools = (difficulty, count = 2) => {
 };
 
 /**
- * Generate enemy spells based on difficulty
+ * Generate enemy spells from actual player spell pool
  */
-export const generateEnemySpells = (difficulty, count = 2) => {
+export const generateEnemySpells = (difficulty, count = 2, playerAvailableSpells = []) => {
   const settings = getDifficultySettings(difficulty);
   const spells = [];
   
@@ -338,6 +423,50 @@ export const generateEnemySpells = (difficulty, count = 2) => {
   };
   
   const actualCount = spellCounts[difficulty] || count;
+  
+  // If player spells are available, select from them
+  if (playerAvailableSpells && playerAvailableSpells.length > 0) {
+    // Sort spells by strategic value
+    const sortedSpells = [...playerAvailableSpells].sort((a, b) => {
+      // Prioritize by rarity
+      const rarityOrder = { 'Legendary': 4, 'Epic': 3, 'Rare': 2, 'Common': 1 };
+      const aRarity = rarityOrder[a.rarity] || 1;
+      const bRarity = rarityOrder[b.rarity] || 1;
+      
+      // Then by effect type preference for AI
+      const effectPreference = {
+        'Surge': 5,    // Direct damage
+        'Drain': 4,    // Damage + heal
+        'Charge': 3,   // Delayed power
+        'Shield': 2,   // Protection
+        'Echo': 1      // Duration
+      };
+      const aEffect = effectPreference[a.spell_effect] || 0;
+      const bEffect = effectPreference[b.spell_effect] || 0;
+      
+      return (bRarity * 10 + bEffect) - (aRarity * 10 + aEffect);
+    });
+    
+    // Select spells based on difficulty
+    for (let i = 0; i < actualCount && i < sortedSpells.length; i++) {
+      const selectedSpell = sortedSpells[i];
+      
+      // Clone the spell for enemy use
+      const enemySpell = {
+        ...selectedSpell,
+        id: `enemy_${selectedSpell.id}_${Date.now()}_${i}`,
+        isEnemyItem: true
+      };
+      
+      spells.push(enemySpell);
+    }
+    
+    console.log(`Generated ${spells.length} enemy spells from player pool for ${difficulty} difficulty`);
+    return spells;
+  }
+  
+  // Fallback: Generate generic spells if no player spells available
+  console.warn("No player spells available, generating generic enemy spells");
   
   // Spell types and effects
   const spellTypes = ['energy', 'strength', 'magic', 'stamina', 'speed'];
@@ -381,10 +510,50 @@ export const generateEnemySpells = (difficulty, count = 2) => {
     // Generate rarity
     const rarity = selectItemRarity(distribution);
     
-    // Create enhanced spell object
+    // Create spell with realistic naming
+    const spellNames = {
+      'Surge': {
+        'energy': 'Lightning Bolt',
+        'strength': 'Power Strike',
+        'magic': 'Arcane Blast',
+        'stamina': 'Vital Surge',
+        'speed': 'Quick Strike'
+      },
+      'Shield': {
+        'energy': 'Energy Shield',
+        'strength': 'Stone Skin',
+        'magic': 'Mystic Barrier',
+        'stamina': 'Divine Protection',
+        'speed': 'Evasion Aura'
+      },
+      'Echo': {
+        'energy': 'Chain Lightning',
+        'strength': 'Reverberating Blow',
+        'magic': 'Spell Echo',
+        'stamina': 'Regeneration Wave',
+        'speed': 'Time Dilation'
+      },
+      'Drain': {
+        'energy': 'Life Drain',
+        'strength': 'Vampiric Strike',
+        'magic': 'Mana Burn',
+        'stamina': 'Soul Siphon',
+        'speed': 'Speed Steal'
+      },
+      'Charge': {
+        'energy': 'Gathering Storm',
+        'strength': 'Devastating Blow',
+        'magic': 'Arcane Convergence',
+        'stamina': 'Final Stand',
+        'speed': 'Accelerate'
+      }
+    };
+    
+    const spellName = spellNames[spellEffect]?.[spellType] || `${rarity} ${spellEffect} ${spellType.charAt(0).toUpperCase() + spellType.slice(1)} Spell`;
+    
     const spell = {
       id: `enemy_spell_${Date.now()}_${i}`,
-      name: `${rarity} ${spellEffect} ${spellType.charAt(0).toUpperCase() + spellType.slice(1)} Spell`,
+      name: `${rarity} ${spellName}`,
       spell_type: spellType,
       spell_effect: spellEffect,
       rarity: rarity,
@@ -392,7 +561,8 @@ export const generateEnemySpells = (difficulty, count = 2) => {
       description: generateSpellDescription(spellType, spellEffect, rarity),
       power_level: calculateEnhancedItemPowerLevel(rarity, difficulty),
       mana_cost: 4,
-      strategic_value: calculateStrategicValue(spellType, spellEffect, difficulty)
+      strategic_value: calculateStrategicValue(spellType, spellEffect, difficulty),
+      isEnemyItem: true
     };
     
     spells.push(spell);
@@ -403,13 +573,14 @@ export const generateEnemySpells = (difficulty, count = 2) => {
 
 /**
  * Generate a balanced set of enemy items with strategic diversity
+ * FIXED: Now accepts player items to select from
  */
-export const generateEnemyItems = (difficulty) => {
+export const generateEnemyItems = (difficulty, playerAvailableTools = [], playerAvailableSpells = []) => {
   const settings = getDifficultySettings(difficulty);
   
-  // Generate base items
-  const tools = generateEnemyTools(difficulty);
-  const spells = generateEnemySpells(difficulty);
+  // Generate base items from player pool
+  const tools = generateEnemyTools(difficulty, undefined, playerAvailableTools);
+  const spells = generateEnemySpells(difficulty, undefined, playerAvailableSpells);
   
   // Add bonus items based on difficulty settings
   const bonusItems = settings.bonusStartingItems || 0;
@@ -419,10 +590,12 @@ export const generateEnemyItems = (difficulty) => {
     for (let i = 0; i < bonusItems; i++) {
       if (Math.random() < 0.6) {
         // 60% chance for bonus tool
-        tools.push(...generateEnemyTools(difficulty, 1));
+        const bonusTools = generateEnemyTools(difficulty, 1, playerAvailableTools);
+        tools.push(...bonusTools);
       } else {
         // 40% chance for bonus spell
-        spells.push(...generateEnemySpells(difficulty, 1));
+        const bonusSpells = generateEnemySpells(difficulty, 1, playerAvailableSpells);
+        spells.push(...bonusSpells);
       }
     }
   }
@@ -437,10 +610,11 @@ export const generateEnemyItems = (difficulty) => {
 
 /**
  * Generate complete enemy loadout with enhanced power
+ * FIXED: Now accepts player items
  */
-export const generateCompleteEnemyLoadout = (difficulty, creatureCount, playerCreatures = []) => {
+export const generateCompleteEnemyLoadout = (difficulty, creatureCount, playerCreatures = [], playerTools = [], playerSpells = []) => {
   const creatures = generateEnemyCreatures(difficulty, creatureCount, playerCreatures);
-  const items = generateEnemyItems(difficulty);
+  const items = generateEnemyItems(difficulty, playerTools, playerSpells);
   
   // Calculate total enemy power for balancing
   const totalPower = calculateTotalPower(creatures, items);
