@@ -2824,11 +2824,14 @@ const BattleGame = ({ onClose }) => {
     const enemyInitialHand = enemyWithStats.slice(0, enemyInitialHandSize);
     const remainingEnemyDeck = enemyWithStats.slice(enemyInitialHandSize);
     
-    const enemyItems = generateEnemyItems(state.difficulty);
+    // FIXED: Pass all available tools and spells from GameContext to enemy generation
+    const enemyItems = generateEnemyItems(state.difficulty, toolNfts || [], spellNfts || []);
     const enemyTools = enemyItems.tools || [];
     const enemySpells = enemyItems.spells || [];
     
     console.log(`Generated ${enemyTools.length} enemy tools and ${enemySpells.length} enemy spells for ${state.difficulty} difficulty`);
+    console.log('Enemy tools:', enemyTools.map(t => t.name));
+    console.log('Enemy spells:', enemySpells.map(s => s.name));
     
     // ENHANCED: Use starting energy from difficulty settings
     const playerStartingEnergy = 10; // Player always starts with 10
@@ -2856,7 +2859,7 @@ const BattleGame = ({ onClose }) => {
     });
     
     addToBattleLog(`Battle started! Enemy has ${enemyTools.length + enemySpells.length} special items and ${enemyStartingEnergy} starting energy!`);
-  }, [state.difficulty, addToBattleLog]);
+  }, [state.difficulty, addToBattleLog, toolNfts, spellNfts]);
   
   const handleBackFromTeamSelect = useCallback(() => {
     dispatch({ type: ACTIONS.SET_GAME_STATE, gameState: 'setup' });
